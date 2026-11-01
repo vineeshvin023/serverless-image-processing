@@ -1,0 +1,44 @@
+{
+  "Comment": "Resize an image and check the result",
+  "QueryLanguage": "JSONPath",
+  "StartAt": "ResizeImage",
+  "States": {
+    "ResizeImage": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:984365597206:function:vinResizeImage",
+        "Payload.$": "$"
+      },
+      "OutputPath": "$.Payload",
+      "Next": "CheckResult",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "ProcessingFailed"
+        }
+      ]
+    },
+    "CheckResult": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.success",
+          "BooleanEquals": true,
+          "Next": "ProcessingSucceeded"
+        }
+      ],
+      "Default": "ProcessingFailed"
+    },
+    "ProcessingSucceeded": {
+      "Type": "Succeed"
+    },
+    "ProcessingFailed": {
+      "Type": "Fail",
+      "Error": "ImageProcessingFailed",
+      "Cause": "The image could not be resized"
+    }
+  }
+}
